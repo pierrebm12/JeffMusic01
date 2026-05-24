@@ -25,11 +25,11 @@ if (process.env.MYSQL_URL) {
 }
 
 const pool = mysql.createPool({
-  host: mysqlUrlConfig.host || process.env.DB_HOST || process.env.MYSQLDB_HOST || process.env.MYSQL_DB_HOST || process.env.MYSQL_HOST || "localhost",
-  user: mysqlUrlConfig.user || process.env.DB_USER || process.env.MYSQLDB_USER || process.env.MYSQL_DB_USER || process.env.MYSQL_USER || "root",
-  password: mysqlUrlConfig.password || process.env.DB_PASSWORD || process.env.MYSQLDB_PASSWORD || process.env.MYSQL_DB_PASSWORD || process.env.MYSQL_PASSWORD || "",
-  database: mysqlUrlConfig.database || process.env.DB_NAME || process.env.MYSQLDB_DATABASE || process.env.MYSQL_DB_NAME || process.env.MYSQL_DATABASE || "jeffmusic",
-  port: mysqlUrlConfig.port || parseInt(process.env.DB_PORT || process.env.MYSQLDB_PORT || process.env.MYSQL_DB_PORT || process.env.MYSQL_PORT || "3306"),
+  host: mysqlUrlConfig.host || process.env.DB_HOST || process.env.MYSQLHOST || process.env.MYSQL_DB_HOST || process.env.MYSQL_HOST || "localhost",
+  user: mysqlUrlConfig.user || process.env.DB_USER || process.env.MYSQLUSER || process.env.MYSQL_DB_USER || process.env.MYSQL_USER || "root",
+  password: mysqlUrlConfig.password || process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || process.env.MYSQL_DB_PASSWORD || process.env.MYSQL_PASSWORD || "",
+  database: mysqlUrlConfig.database || process.env.DB_NAME || process.env.MYSQLDATABASE || process.env.MYSQL_DB_NAME || process.env.MYSQL_DATABASE || "jeffmusic",
+  port: mysqlUrlConfig.port || parseInt(process.env.DB_PORT || process.env.MYSQLPORT || process.env.MYSQL_DB_PORT || process.env.MYSQL_PORT || "3306"),
   ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
   waitForConnections: true,
   connectionLimit: 10,
