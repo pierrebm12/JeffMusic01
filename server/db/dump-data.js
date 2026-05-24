@@ -31,7 +31,7 @@ async function dumpTable(table, orderCol) {
 
 async function dump() {
   try {
-    let output = "USE jeffmusic;\n\n";
+    let output = "USE __DB_NAME__;\n\n";
 
     const { sql: sectionsSql, count: sectionsCount } = await dumpTable("site_sections", "section_key");
     output += `-- ============================================================\n-- SITE SECTIONS (${sectionsCount} rows)\n-- ============================================================\n`;

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import rateLimit from "express-rate-limit";
 import showsRouter from "./routes/shows.js";
@@ -19,6 +20,10 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 app.use(cors({
   origin: process.env.CORS_ORIGIN || "http://localhost:5173",
@@ -58,6 +63,17 @@ app.use("/api/sections", sectionsRouter);
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
+
+// Serve built frontend in production
+const distPath = path.join(process.cwd(), "dist");
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get("*", (req, res) => {
+    if (req.path.startsWith("/api")) return;
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+  console.log("🌐 Serving built frontend from dist/");
+}
 
 app.use((err, req, res, _next) => {
   console.error("❌ Unhandled error:", err);
