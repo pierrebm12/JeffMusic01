@@ -24,14 +24,18 @@ if (process.env.MYSQL_URL) {
   } catch { /* ignore invalid URL */ }
 }
 
+// Enable SSL by default when MYSQL_URL is present (Railway MySQL requires SSL)
+const isRailway = !!(mysqlUrlConfig.host || process.env.MYSQL_URL || process.env.MYSQL_HOST);
+const sslEnabled = process.env.DB_SSL === "true" || (isRailway && process.env.DB_SSL !== "false");
+
 const pool = mysql.createPool({
   host: mysqlUrlConfig.host || process.env.DB_HOST || process.env.MYSQLDB_HOST || process.env.MYSQL_DB_HOST || process.env.MYSQL_HOST || "localhost",
   user: mysqlUrlConfig.user || process.env.DB_USER || process.env.MYSQLDB_USER || process.env.MYSQL_DB_USER || process.env.MYSQL_USER || "root",
   password: mysqlUrlConfig.password || process.env.DB_PASSWORD || process.env.MYSQLDB_PASSWORD || process.env.MYSQL_DB_PASSWORD || process.env.MYSQL_PASSWORD || "",
   database: mysqlUrlConfig.database || process.env.DB_NAME || process.env.MYSQLDB_DATABASE || process.env.MYSQL_DB_NAME || process.env.MYSQL_DATABASE || "jeffmusic",
   port: mysqlUrlConfig.port || parseInt(process.env.DB_PORT || process.env.MYSQLDB_PORT || process.env.MYSQL_DB_PORT || process.env.MYSQL_PORT || "3306"),
-  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
-  connectTimeout: 10000,
+  ssl: sslEnabled ? { rejectUnauthorized: false } : undefined,
+  connectTimeout: 15000,
   waitForConnections: true,
   connectionLimit: 5,
   queueLimit: 5,

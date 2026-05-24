@@ -65,10 +65,6 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Serve favicon (prevents 404 on browser favicon request)
-app.get("/favicon.ico", (req, res) => res.status(204).end());
-app.get("/favicon.svg", (req, res) => res.status(204).end());
-
 // Serve built frontend in production
 const distPath = path.join(process.cwd(), "dist");
 if (fs.existsSync(distPath)) {
