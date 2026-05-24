@@ -98,12 +98,12 @@ app.listen(PORT, async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 API available at http://localhost:${PORT}/api`);
 
-  // Log DB config (without password)
-  console.log("📋 DB config:", JSON.stringify({
-    host: process.env.DB_HOST || process.env.MYSQL_HOST || "not set",
-    user: process.env.DB_USER || process.env.MYSQL_USER || "not set",
-    database: process.env.DB_NAME || process.env.MYSQL_DATABASE || "not set",
-    port: process.env.DB_PORT || process.env.MYSQL_PORT || "not set",
+  // Log DB config (without password) — using error level to appear in Railway logs
+  console.error("📋 DB config:", JSON.stringify({
+    host: process.env.DB_HOST || process.env.MYSQLDB_HOST || process.env.MYSQL_DB_HOST || process.env.MYSQL_HOST || "not set",
+    user: process.env.DB_USER || process.env.MYSQLDB_USER || process.env.MYSQL_DB_USER || process.env.MYSQL_USER || "not set",
+    database: process.env.DB_NAME || process.env.MYSQLDB_DATABASE || process.env.MYSQL_DB_NAME || process.env.MYSQL_DATABASE || "not set",
+    port: process.env.DB_PORT || process.env.MYSQLDB_PORT || process.env.MYSQL_DB_PORT || process.env.MYSQL_PORT || "not set",
     hasMysqlUrl: !!process.env.MYSQL_URL,
   }));
 
@@ -112,7 +112,7 @@ app.listen(PORT, async () => {
     const conn = await pool.getConnection();
     await conn.query("SELECT 1");
     conn.release();
-    console.log("✅ DB connected");
+    console.error("✅ DB connected");
   } catch (err) {
     console.error("❌ DB connection failed:", JSON.stringify({
       message: err?.message,
