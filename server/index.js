@@ -100,33 +100,29 @@ process.on("uncaughtException", (err) => {
   console.error("❌ Uncaught Exception:", err);
 });
 
-app.listen(PORT, "0.0.0.0", async () => {
+// Test DB connection BEFORE starting server
+console.error("⏳ Testing DB connection...");
+try {
+  const conn = await pool.getConnection();
+  await conn.query("SELECT 1");
+  conn.release();
+  console.error("✅ DB connected");
+} catch (err) {
+  console.error("❌ DB connection failed:", JSON.stringify({
+    message: err?.message,
+    code: err?.code,
+    errno: err?.errno,
+    sqlState: err?.sqlState,
+    sqlMessage: err?.sqlMessage,
+  }));
+}
+
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
   console.log(`📊 API available at http://0.0.0.0:${PORT}/api`);
+});
 
-  // Log ALL env vars related to database to understand Railway naming
-  const dbEnvVars = {};
-  for (const [key, value] of Object.entries(process.env)) {
-    const k = key.toLowerCase();
-    if (k.includes("mysql") || k.includes("database") || k.includes("db_") || k.includes("datasource") || key === "DATABASE_URL") {
-      dbEnvVars[key] = key.toLowerCase().includes("pass") || key.toLowerCase().includes("password") ? "***" : value;
-    }
-  }
-  console.error("📋 DB env vars found:", JSON.stringify(dbEnvVars));
-
-  // Test DB connection
-  try {
-    const conn = await pool.getConnection();
-    await conn.query("SELECT 1");
-    conn.release();
-    console.error("✅ DB connected");
-  } catch (err) {
-    console.error("❌ DB connection failed:", JSON.stringify({
-      message: err?.message,
-      code: err?.code,
-      errno: err?.errno,
-      sqlState: err?.sqlState,
-      sqlMessage: err?.sqlMessage,
-    }));
-  }
+// Keep process alive if server closes
+server.on("close", () => {
+  console.error("⚠️ Server closed, but staying alive for debug");
 });
