@@ -100,9 +100,9 @@ process.on("uncaughtException", (err) => {
   console.error("❌ Uncaught Exception:", err);
 });
 
-app.listen(PORT, async () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📊 API available at http://localhost:${PORT}/api`);
+app.listen(PORT, "0.0.0.0", async () => {
+  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+  console.log(`📊 API available at http://0.0.0.0:${PORT}/api`);
 
   // Log ALL env vars related to database to understand Railway naming
   const dbEnvVars = {};
