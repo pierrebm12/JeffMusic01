@@ -25,14 +25,14 @@ if (process.env.MYSQL_URL) {
   } catch { /* ignore invalid URL */ }
 }
 
-const DB_NAME = mysqlUrlConfig.database || process.env.DB_NAME || process.env.MYSQLDB_DATABASE || process.env.MYSQL_DB_NAME || process.env.MYSQL_DATABASE || "jeffmusic";
+const DB_NAME = mysqlUrlConfig.database || process.env.DB_NAME || process.env.MYSQLDB_DATABASE || process.env.MYSQL_DB_NAME || process.env.MYSQL_DATABASE || process.env.MYSQLDATABASE || "jeffmusic";
 
 async function init() {
   const conn = await mysql.createConnection({
-    host: mysqlUrlConfig.host || process.env.DB_HOST || process.env.MYSQLDB_HOST || process.env.MYSQL_DB_HOST || process.env.MYSQL_HOST || "localhost",
-    user: mysqlUrlConfig.user || process.env.DB_USER || process.env.MYSQLDB_USER || process.env.MYSQL_DB_USER || process.env.MYSQL_USER || "root",
-    password: mysqlUrlConfig.password || process.env.DB_PASSWORD || process.env.MYSQLDB_PASSWORD || process.env.MYSQL_DB_PASSWORD || process.env.MYSQL_PASSWORD || "",
-    port: mysqlUrlConfig.port || parseInt(process.env.DB_PORT || process.env.MYSQLDB_PORT || process.env.MYSQL_DB_PORT || process.env.MYSQL_PORT || "3306"),
+    host: mysqlUrlConfig.host || process.env.DB_HOST || process.env.MYSQLDB_HOST || process.env.MYSQL_DB_HOST || process.env.MYSQL_HOST || process.env.MYSQLHOST || "localhost",
+    user: mysqlUrlConfig.user || process.env.DB_USER || process.env.MYSQLDB_USER || process.env.MYSQL_DB_USER || process.env.MYSQL_USER || process.env.MYSQLUSER || "root",
+    password: mysqlUrlConfig.password || process.env.DB_PASSWORD || process.env.MYSQLDB_PASSWORD || process.env.MYSQL_DB_PASSWORD || process.env.MYSQL_PASSWORD || process.env.MYSQLPASSWORD || process.env.MYSQL_ROOT_PASSWORD || "",
+    port: mysqlUrlConfig.port || parseInt(process.env.DB_PORT || process.env.MYSQLDB_PORT || process.env.MYSQL_DB_PORT || process.env.MYSQL_PORT || process.env.MYSQLPORT || "3306"),
     ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
     multipleStatements: true,
   });
