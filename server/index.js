@@ -12,6 +12,7 @@ import adminRouter from "./routes/admin.js";
 import uploadRouter from "./routes/upload.js";
 import homeRouter from "./routes/home.js";
 import sectionsRouter from "./routes/sections.js";
+import pool from "./db/connection.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,16 +65,25 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+// Serve favicon (prevents 404 on browser favicon request)
+app.get("/favicon.ico", (req, res) => res.status(204).end());
+app.get("/favicon.svg", (req, res) => res.status(204).end());
+
 // Serve built frontend in production
 const distPath = path.join(process.cwd(), "dist");
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
-  app.get("*", (req, res) => {
-    if (req.path.startsWith("/api")) return;
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
     res.sendFile(path.join(distPath, "index.html"));
   });
   console.log("🌐 Serving built frontend from dist/");
 }
+
+// 404 handler for unmatched API routes
+app.use("/api", (req, res) => {
+  res.status(404).json({ error: "Not found" });
+});
 
 app.use((err, req, res, _next) => {
   console.error("❌ Unhandled error:", err);
@@ -88,7 +98,17 @@ process.on("uncaughtException", (err) => {
   console.error("❌ Uncaught Exception:", err);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 API available at http://localhost:${PORT}/api`);
+
+  // Test DB connection
+  try {
+    const conn = await pool.getConnection();
+    await conn.query("SELECT 1");
+    conn.release();
+    console.log("✅ DB connected");
+  } catch (err) {
+    console.error("❌ DB connection failed:", err.message);
+  }
 });
