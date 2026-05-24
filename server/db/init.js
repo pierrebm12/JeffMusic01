@@ -22,6 +22,14 @@ async function init() {
     const schema = fs.readFileSync(path.join(__dirname, "schema.sql"), "utf8");
     await conn.query(schema);
     console.log("✅ Database and tables created successfully");
+
+    // Optionally seed data
+    const dataPath = path.join(__dirname, "data.sql");
+    if (fs.existsSync(dataPath)) {
+      const data = fs.readFileSync(dataPath, "utf8");
+      await conn.query(data);
+      console.log("✅ Seed data inserted successfully");
+    }
   } catch (err) {
     console.error("❌ Error initializing database:", err.message);
   } finally {
