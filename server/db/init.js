@@ -9,14 +9,14 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
-const DB_NAME = process.env.DB_NAME || "jeffmusic";
+const DB_NAME = process.env.DB_NAME || process.env.MYSQL_DB_NAME || process.env.MYSQL_DATABASE || "jeffmusic";
 
 async function init() {
   const conn = await mysql.createConnection({
-    host: process.env.DB_HOST || "localhost",
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "",
-    port: parseInt(process.env.DB_PORT || "3306"),
+    host: process.env.DB_HOST || process.env.MYSQL_DB_HOST || process.env.MYSQL_HOST || "localhost",
+    user: process.env.DB_USER || process.env.MYSQL_DB_USER || process.env.MYSQL_USER || "root",
+    password: process.env.DB_PASSWORD || process.env.MYSQL_DB_PASSWORD || process.env.MYSQL_PASSWORD || "",
+    port: parseInt(process.env.DB_PORT || process.env.MYSQL_DB_PORT || process.env.MYSQL_PORT || "3306"),
     multipleStatements: true,
   });
 
