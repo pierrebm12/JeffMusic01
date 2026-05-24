@@ -98,6 +98,15 @@ app.listen(PORT, async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 API available at http://localhost:${PORT}/api`);
 
+  // Log DB config (without password)
+  console.log("📋 DB config:", JSON.stringify({
+    host: process.env.DB_HOST || process.env.MYSQL_HOST || "not set",
+    user: process.env.DB_USER || process.env.MYSQL_USER || "not set",
+    database: process.env.DB_NAME || process.env.MYSQL_DATABASE || "not set",
+    port: process.env.DB_PORT || process.env.MYSQL_PORT || "not set",
+    hasMysqlUrl: !!process.env.MYSQL_URL,
+  }));
+
   // Test DB connection
   try {
     const conn = await pool.getConnection();
@@ -105,6 +114,12 @@ app.listen(PORT, async () => {
     conn.release();
     console.log("✅ DB connected");
   } catch (err) {
-    console.error("❌ DB connection failed:", err.message);
+    console.error("❌ DB connection failed:", JSON.stringify({
+      message: err?.message,
+      code: err?.code,
+      errno: err?.errno,
+      sqlState: err?.sqlState,
+      sqlMessage: err?.sqlMessage,
+    }));
   }
 });
