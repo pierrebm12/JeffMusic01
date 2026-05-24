@@ -9,6 +9,8 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
+const DB_NAME = process.env.DB_NAME || "jeffmusic";
+
 async function init() {
   const conn = await mysql.createConnection({
     host: process.env.DB_HOST || "localhost",
@@ -19,14 +21,18 @@ async function init() {
   });
 
   try {
-    const schema = fs.readFileSync(path.join(__dirname, "schema.sql"), "utf8");
+    const schema = fs
+      .readFileSync(path.join(__dirname, "schema.sql"), "utf8")
+      .replace(/__DB_NAME__/g, DB_NAME);
     await conn.query(schema);
     console.log("✅ Database and tables created successfully");
 
     // Optionally seed data
     const dataPath = path.join(__dirname, "data.sql");
     if (fs.existsSync(dataPath)) {
-      const data = fs.readFileSync(dataPath, "utf8");
+      const data = fs
+        .readFileSync(dataPath, "utf8")
+        .replace(/__DB_NAME__/g, DB_NAME);
       await conn.query(data);
       console.log("✅ Seed data inserted successfully");
     }
