@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-const API_ORIGIN = (import.meta.env.VITE_API_URL || "/api").replace("/api", "");
+const API_ORIGIN = "";
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs))

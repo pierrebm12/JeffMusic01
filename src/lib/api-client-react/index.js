@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-const API_URL = import.meta.env.VITE_API_URL || "/api";
+const API_URL = "/api";
 
 // Query key getters
 export function getHomeDataQueryKey() { return ["home"]; }
@@ -239,7 +239,8 @@ export function useAdminLogin({ mutation } = {}) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Invalid password");
+      if (res.status === 401) throw new Error("Invalid password");
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
       return res.json();
     },
     onSuccess: mutation?.onSuccess,

@@ -23,6 +23,9 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Railway runs behind a proxy — trust X-Forwarded-* headers
+app.set("trust proxy", 1);
+
 // Ensure uploads directory exists
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
