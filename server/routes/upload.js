@@ -5,23 +5,11 @@ import fs from "fs";
 import pool from "../db/connection.js";
 import { body, param } from "express-validator";
 import { handleValidation } from "../middleware/validate.js";
+import { isConfigured, uploadStream } from "../lib/cloudinary.js";
 
 const router = Router();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const type = req.params.type;
-    const dir = path.join(process.cwd(), "uploads", type === "photo" ? "photos" : "videos");
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  },
-});
+const memory = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   const type = req.params.type;
@@ -43,11 +31,9 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage,
+  storage: memory,
   fileFilter,
-  limits: {
-    fileSize: 100 * 1024 * 1024, // 100MB
-  },
+  limits: { fileSize: 100 * 1024 * 1024 },
 });
 
 const uploadRules = [
@@ -57,17 +43,34 @@ const uploadRules = [
   body("sortOrder").optional().isInt({ min: 0 }).withMessage("sortOrder must be a positive integer"),
 ];
 
+async function saveFile(file, type) {
+  if (isConfigured()) {
+    const folder = type === "photo" ? "jeffmusic/photos" : "jeffmusic/videos";
+    const result = await uploadStream(file.buffer, { folder });
+    return result.secure_url;
+  }
+  const dir = path.join(process.cwd(), "uploads", type === "photo" ? "photos" : "videos");
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+  fs.writeFileSync(path.join(dir, uniqueName), file.buffer);
+  return `/api/uploads/${type === "photo" ? "photos" : "videos"}/${uniqueName}`;
+}
+
 router.post("/section-media/:type", (req, res) => {
   const { type } = req.params;
   if (!["photo", "video"].includes(type)) {
     return res.status(400).json({ error: "type must be 'photo' or 'video'" });
   }
-  upload.single("file")(req, res, (err) => {
+  upload.single("file")(req, res, async (err) => {
     if (err instanceof multer.MulterError) return res.status(400).json({ error: err.message });
     if (err) return res.status(400).json({ error: err.message });
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-    const url = `/api/uploads/${type === "photo" ? "photos" : "videos"}/${req.file.filename}`;
-    res.json({ url });
+    try {
+      const url = await saveFile(req.file, type);
+      res.json({ url });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
   });
 });
 
@@ -75,24 +78,20 @@ router.post("/:type", uploadRules, handleValidation, upload.single("file"), asyn
   try {
     const { type } = req.params;
     const { title, titleEn, sortOrder } = req.body;
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-
-    const fileName = req.file.filename;
-    const url = `/api/uploads/${type === "photo" ? "photos" : "videos"}/${fileName}`;
+    const url = await saveFile(req.file, type);
 
     const table = type === "photo" ? "photos" : "videos";
     const [result] = await pool.query(
       `INSERT INTO ${table} (url, title, title_en, sort_order) VALUES (?, ?, ?, ?)`,
-      [url, title || fileName, titleEn || null, parseInt(sortOrder) || 0]
+      [url, title || req.file.originalname, titleEn || null, parseInt(sortOrder) || 0]
     );
 
     res.status(201).json({
       id: result.insertId,
       url,
-      title: title || fileName,
+      title: title || req.file.originalname,
       title_en: titleEn || null,
       sort_order: parseInt(sortOrder) || 0,
     });

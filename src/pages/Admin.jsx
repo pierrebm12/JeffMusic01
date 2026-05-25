@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, Image, Video, Calendar, LayoutDashboard, Plus, Trash2, Edit2, Check, X, Upload, Link, Settings } from "lucide-react";
+import { LogOut, Image, Video, Calendar, LayoutDashboard, Plus, Trash2, Edit2, Check, X, Upload, Link, Settings, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
@@ -65,7 +65,7 @@ export function Admin({ onLogout }) {
         ))}
       </div>
 
-      <div className="p-6 max-w-5xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto">
         {tab === "shows" && <ShowsTab t={t} qc={qc} onEdit={setEditingShow} onDelete={(id) => setDeleteTarget({ type: "shows", id })} />}
         {tab === "sections" && <SectionsTab t={t} qc={qc} />}
         {tab === "photos" && <MediaTab type="photos" t={t} qc={qc} onDelete={(id) => setDeleteTarget({ type: "photos", id })} />}
@@ -263,6 +263,71 @@ function EditShowModal({ show, t, onClose, onSaved }) {
 
 const API_BASE = "/api";
 
+function MonthUploadDialog({ open, onOpenChange, monthLabel, onUpload }) {
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const fileRef = useRef(null);
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPreview(URL.createObjectURL(file));
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(`${API_BASE}/upload/section-media/photo`, { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      onUpload(data.url);
+      onOpenChange(false);
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-[#0d0d0d] border border-white/10 text-white">
+        <DialogHeader>
+          <DialogTitle className="text-primary uppercase tracking-wider">
+            {monthLabel}
+          </DialogTitle>
+          <DialogDescription className="text-gray-400">
+            Selecciona una imagen de fondo para este mes
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div
+            onClick={() => fileRef.current?.click()}
+            className="border-2 border-dashed border-white/10 rounded-xl p-6 text-center cursor-pointer hover:border-primary/30 transition-all"
+          >
+            <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+            {preview ? (
+              <img src={preview} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
+            ) : (
+              <div className="space-y-2">
+                <ImagePlus className="w-10 h-10 text-gray-500 mx-auto" />
+                <div className="text-gray-400 text-sm">Haz clic para seleccionar una imagen</div>
+              </div>
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}
+            className="border-white/20 text-white hover:bg-white/10">
+            Cancelar
+          </Button>
+          {uploading && <span className="text-primary text-sm">Subiendo...</span>}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function SectionMediaUpload({ currentUrl, type, onUpload }) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
@@ -325,6 +390,7 @@ function SectionsTab({ t, qc }) {
   const [heroForm, setHeroForm] = useState({ mediaUrl: "", titleEs: "", titleEn: "", subtitleEs: "", subtitleEn: "" });
   const [bioForm, setBioForm] = useState({ mediaUrl: "", titleEs: "", titleEn: "", text1Es: "", text1En: "", text2Es: "", text2En: "", text3Es: "", text3En: "" });
   const [calendarForm, setCalendarForm] = useState({ mediaUrl: "", months: {} });
+  const [monthUploadIdx, setMonthUploadIdx] = useState(null);
 
   const monthLabels = language === "es"
     ? ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
@@ -511,21 +577,39 @@ function SectionsTab({ t, qc }) {
             <label className="text-xs text-gray-400 uppercase tracking-wider mb-3 block font-semibold">
               {language === "es" ? "Fondos por mes" : "Backgrounds per month"}
             </label>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
               {monthLabels.map((label, idx) => (
-                <div key={idx} className="bg-black/40 border border-white/5 rounded-xl p-3 space-y-2">
-                  <label className="text-[10px] text-primary uppercase tracking-wider font-semibold block">{label}</label>
+                <div key={idx} className="bg-black/40 border border-white/5 rounded-xl p-2 sm:p-3 space-y-2 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] text-primary uppercase tracking-wider font-semibold truncate">{label}</label>
+                    <button type="button" onClick={() => setMonthUploadIdx(idx)}
+                      className="p-1 rounded hover:bg-white/5 text-gray-400 hover:text-primary transition-all flex-shrink-0"
+                      title="Subir imagen">
+                      <ImagePlus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                   {calendarForm.months[idx] && (
                     <img src={resolveMediaUrl(calendarForm.months[idx])} alt={label}
-                      className="w-full h-16 object-cover rounded-lg border border-white/5" />
+                      className="w-full h-12 sm:h-16 object-cover rounded-lg border border-white/5" />
                   )}
                   <input value={calendarForm.months[idx] || ""}
                     onChange={e => setCalendarForm(f => ({ ...f, months: { ...f.months, [idx]: e.target.value } }))}
                     className="w-full bg-transparent border-b border-white/20 py-1 text-white focus:outline-none focus:border-primary font-mono text-[10px]"
-                    placeholder="https://..." />
+                    placeholder="URL" />
                 </div>
               ))}
             </div>
+            {monthUploadIdx !== null && (
+              <MonthUploadDialog
+                open={monthUploadIdx !== null}
+                onOpenChange={(o) => { if (!o) setMonthUploadIdx(null); }}
+                monthLabel={monthLabels[monthUploadIdx]}
+                onUpload={(url) => {
+                  setCalendarForm(f => ({ ...f, months: { ...f.months, [monthUploadIdx]: url } }));
+                  setMonthUploadIdx(null);
+                }}
+              />
+            )}
           </div>
 
           <Button type="submit" disabled={updateCalendar.isPending}

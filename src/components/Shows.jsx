@@ -156,7 +156,7 @@ export function Shows({ apiShows = [], sections = {} }) {
           {/* Day Headers */}
           <div className="relative z-10 grid grid-cols-7 border-b border-white/5">
             {dayNames.map((d, i) => (
-              <div key={i} className="py-2 sm:py-3 text-center text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <div key={i} className="py-2 sm:py-3 text-center text-[9px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 {d}
               </div>
             ))}
@@ -183,28 +183,28 @@ export function Shows({ apiShows = [], sections = {} }) {
                           if (hasShow) handleReserveClick(shows[0]);
                           else if (day) setInquiryDate({ day, month, year });
                         }}
-                        className={`relative min-h-[60px] sm:min-h-[72px] md:min-h-[88px] p-1 sm:p-2 transition-all cursor-pointer
+                        className={`relative min-h-[52px] sm:min-h-[72px] md:min-h-[88px] p-[2px] sm:p-2 transition-all cursor-pointer
                           ${!day ? "bg-black/20 cursor-default" : "hover:bg-white/[0.03]"}`}>
                         {day !== null && (
                           <div className="relative z-10">
-                            <div className="flex items-start justify-between">
-                              <span className={`text-sm font-medium ${hasShow ? "text-white" : "text-gray-400"}`}>
+                            <div className="flex items-start justify-between gap-0.5">
+                              <span className={`text-[11px] sm:text-sm font-medium ${hasShow ? "text-white" : "text-gray-400"}`}>
                                 {day}
                               </span>
                               {hasShow && (
-                                <Mic className={`w-3.5 h-3.5 mt-0.5 ${available ? "text-green-400" : "text-red-400"}`} />
+                                <Mic className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 mt-0.5 flex-shrink-0 ${available ? "text-green-400" : "text-red-400"}`} />
                               )}
                             </div>
                             {hasShow && (
-                              <div className="mt-1.5 flex items-center gap-1">
-                                <span className={`text-[9px] uppercase tracking-wider font-semibold
+                              <div className="mt-0.5 sm:mt-1.5 flex items-center gap-1">
+                                <span className={`text-[7px] sm:text-[9px] uppercase tracking-wider font-semibold leading-tight
                                   ${available ? "text-green-400/80" : "text-red-400/80"}`}>
-                                  {available ? "Disponible" : "Reservado"}
+                                  {available ? "Disp" : "Agot"}
                                 </span>
                               </div>
                             )}
                             {!hasShow && day && (
-                              <div className="mt-1.5">
+                              <div className="mt-0.5 sm:mt-1.5 hidden sm:block">
                                 <span className="text-[8px] text-gray-500 uppercase tracking-wider">
                                   Sin evento
                                 </span>
