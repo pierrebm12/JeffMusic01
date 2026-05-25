@@ -72,16 +72,24 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Serve built frontend in production
+// Serve built frontend (works even if dist/ is created after startup)
 const distPath = path.join(process.cwd(), "dist");
-if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
-  app.get("*", (req, res, next) => {
-    if (req.path.startsWith("/api")) return next();
-    res.sendFile(path.join(distPath, "index.html"));
-  });
-  console.log("🌐 Serving built frontend from dist/");
-}
+app.use(express.static(distPath));
+
+// Always respond to root requests — even before build completes
+app.get("/", (req, res) => {
+  const indexPath = path.join(distPath, "index.html");
+  if (fs.existsSync(indexPath)) return res.sendFile(indexPath);
+  res.send("<!doctype html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>JeffMusic</title></head><body style='background:#000;color:#d4af37;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif'><h1>🎵 JeffMusic</h1><p>Loading...</p></body></html>");
+});
+
+// Catch-all for client-side routing (non-API, non-root)
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api")) return next();
+  const indexPath = path.join(distPath, "index.html");
+  if (fs.existsSync(indexPath)) return res.sendFile(indexPath);
+  next();
+});
 
 // 404 handler for unmatched API routes
 app.use("/api", (req, res) => {
