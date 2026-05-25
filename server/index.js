@@ -68,8 +68,43 @@ app.use("/api/upload", uploadRouter);
 app.use("/api/home", homeRouter);
 app.use("/api/sections", sectionsRouter);
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+app.get("/api/health", async (req, res) => {
+  let dbStatus = "unknown";
+  try {
+    const conn = await pool.getConnection();
+    await conn.query("SELECT 1");
+    conn.release();
+    dbStatus = "connected";
+  } catch (e) { dbStatus = `error: ${e.message}`; }
+  res.json({ status: "ok", db: dbStatus, timestamp: new Date().toISOString() });
+});
+
+// Debug endpoint to check DB and env
+app.get("/api/debug", async (req, res) => {
+  const dbInfo = {};
+  try {
+    const conn = await pool.getConnection();
+    const [r] = await conn.query("SELECT DATABASE() AS db, VERSION() AS ver, NOW() AS now");
+    dbInfo.connection = "ok";
+    dbInfo.database = r[0].db;
+    dbInfo.version = r[0].ver;
+    dbInfo.time = r[0].now;
+    const tables = ["site_sections", "shows", "photos", "videos"];
+    for (const t of tables) {
+      const [cnt] = await conn.query("SELECT COUNT(*) AS c FROM ??", [t]);
+      dbInfo[t] = cnt[0].c;
+    }
+    conn.release();
+  } catch (e) { dbInfo.error = e.message; }
+
+  const envVars = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    const k = key.toLowerCase();
+    if (k.includes("mysql") || k.includes("database") || k.includes("db_") || k.includes("password") || k.includes("admin")) {
+      envVars[key] = (k.includes("pass") || k.includes("password")) ? "***" : value;
+    }
+  }
+  res.json({ db: dbInfo, env: envVars });
 });
 
 // Serve built frontend (works even if dist/ is created after startup)
