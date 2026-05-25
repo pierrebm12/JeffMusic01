@@ -261,7 +261,7 @@ function EditShowModal({ show, t, onClose, onSaved }) {
   );
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || "/api";
+const API_BASE = "/api";
 
 function SectionMediaUpload({ currentUrl, type, onUpload }) {
   const [uploading, setUploading] = useState(false);
