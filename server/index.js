@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { spawn } from "child_process";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -106,15 +106,18 @@ const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 API available at /api`);
 
-  // Then build client in background (async)
-  setTimeout(async () => {
-    try {
-      console.log("🏗️ Building client...");
-      execSync("npx vite build", { cwd: path.join(process.cwd()), stdio: "inherit", timeout: 60000 });
-      console.log("✅ Client built");
-    } catch (e) {
-      console.error("❌ Client build failed:", e.message);
-    }
+  // Then build client in background (non-blocking)
+  setTimeout(() => {
+    console.log("🏗️ Building client...");
+    const child = spawn("npx", ["vite", "build"], {
+      cwd: path.join(process.cwd()),
+      stdio: "inherit",
+      shell: true,
+    });
+    child.on("exit", (code) => {
+      if (code === 0) console.log("✅ Client built");
+      else console.error("❌ Client build failed with code", code);
+    });
   }, 100);
 
   // And test DB in background
