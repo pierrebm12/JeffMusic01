@@ -239,7 +239,8 @@ export function useAdminLogin({ mutation } = {}) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Invalid password");
+      if (res.status === 401) throw new Error("Invalid password");
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
       return res.json();
     },
     onSuccess: mutation?.onSuccess,

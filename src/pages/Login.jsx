@@ -18,8 +18,8 @@ export function Login({ onSuccess }) {
         setIsAdmin(true);
         onSuccess();
       },
-      onError: () => {
-        setError(t.admin.loginError);
+      onError: (err) => {
+        setError(err.message === "Invalid password" ? t.admin.loginError : err.message || "Connection error");
       },
     },
   });
