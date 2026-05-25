@@ -65,7 +65,7 @@ export function Admin({ onLogout }) {
         ))}
       </div>
 
-      <div className="p-6 max-w-5xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto">
         {tab === "shows" && <ShowsTab t={t} qc={qc} onEdit={setEditingShow} onDelete={(id) => setDeleteTarget({ type: "shows", id })} />}
         {tab === "sections" && <SectionsTab t={t} qc={qc} />}
         {tab === "photos" && <MediaTab type="photos" t={t} qc={qc} onDelete={(id) => setDeleteTarget({ type: "photos", id })} />}
@@ -577,25 +577,25 @@ function SectionsTab({ t, qc }) {
             <label className="text-xs text-gray-400 uppercase tracking-wider mb-3 block font-semibold">
               {language === "es" ? "Fondos por mes" : "Backgrounds per month"}
             </label>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
               {monthLabels.map((label, idx) => (
-                <div key={idx} className="bg-black/40 border border-white/5 rounded-xl p-3 space-y-2">
+                <div key={idx} className="bg-black/40 border border-white/5 rounded-xl p-2 sm:p-3 space-y-2 min-w-0">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] text-primary uppercase tracking-wider font-semibold">{label}</label>
+                    <label className="text-[10px] text-primary uppercase tracking-wider font-semibold truncate">{label}</label>
                     <button type="button" onClick={() => setMonthUploadIdx(idx)}
-                      className="p-1 rounded hover:bg-white/5 text-gray-400 hover:text-primary transition-all"
+                      className="p-1 rounded hover:bg-white/5 text-gray-400 hover:text-primary transition-all flex-shrink-0"
                       title="Subir imagen">
                       <ImagePlus className="w-3.5 h-3.5" />
                     </button>
                   </div>
                   {calendarForm.months[idx] && (
                     <img src={resolveMediaUrl(calendarForm.months[idx])} alt={label}
-                      className="w-full h-16 object-cover rounded-lg border border-white/5" />
+                      className="w-full h-12 sm:h-16 object-cover rounded-lg border border-white/5" />
                   )}
                   <input value={calendarForm.months[idx] || ""}
                     onChange={e => setCalendarForm(f => ({ ...f, months: { ...f.months, [idx]: e.target.value } }))}
                     className="w-full bg-transparent border-b border-white/20 py-1 text-white focus:outline-none focus:border-primary font-mono text-[10px]"
-                    placeholder="https://..." />
+                    placeholder="URL" />
                 </div>
               ))}
             </div>
