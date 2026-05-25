@@ -29,11 +29,11 @@ const isRailway = !!(mysqlUrlConfig.host || process.env.MYSQL_URL || process.env
 const sslEnabled = process.env.DB_SSL === "true" || (isRailway && process.env.DB_SSL !== "false");
 
 const pool = mysql.createPool({
-  host: mysqlUrlConfig.host || process.env.DB_HOST  || "localhost",
-  user: mysqlUrlConfig.user || process.env.DB_USER  || "root",
-  password: mysqlUrlConfig.password || process.env.DB_PASSWORD || "",
-  database: mysqlUrlConfig.database || process.env.DB_NAME || "jeffmusic",
-  port: mysqlUrlConfig.port || parseInt(process.env.DB_PORT || "3306"),
+  host: mysqlUrlConfig.host || process.env.DB_HOST || process.env.MYSQLDB_HOST || process.env.MYSQL_DB_HOST || process.env.MYSQL_HOST || process.env.MYSQLHOST || "localhost",
+  user: mysqlUrlConfig.user || process.env.DB_USER || process.env.MYSQLDB_USER || process.env.MYSQL_DB_USER || process.env.MYSQL_USER || process.env.MYSQLUSER || "root",
+  password: mysqlUrlConfig.password || process.env.DB_PASSWORD || process.env.MYSQLDB_PASSWORD || process.env.MYSQL_DB_PASSWORD || process.env.MYSQL_PASSWORD || process.env.MYSQLPASSWORD || process.env.MYSQL_ROOT_PASSWORD || "",
+  database: mysqlUrlConfig.database || process.env.DB_NAME || process.env.MYSQLDB_DATABASE || process.env.MYSQL_DB_NAME || process.env.MYSQL_DATABASE || process.env.MYSQLDATABASE || "jeffmusic",
+  port: mysqlUrlConfig.port || parseInt(process.env.DB_PORT || process.env.MYSQLDB_PORT || process.env.MYSQL_DB_PORT || process.env.MYSQL_PORT || process.env.MYSQLPORT || "3306"),
   ssl: sslEnabled ? { rejectUnauthorized: false } : undefined,
   connectTimeout: 15000,
   waitForConnections: true,
