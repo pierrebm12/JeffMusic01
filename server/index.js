@@ -1,3 +1,4 @@
+import { execSync } from "child_process";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -100,29 +101,48 @@ process.on("uncaughtException", (err) => {
   console.error("❌ Uncaught Exception:", err);
 });
 
-// Test DB connection BEFORE starting server
-console.error("⏳ Testing DB connection...");
-try {
-  const conn = await pool.getConnection();
-  await conn.query("SELECT 1");
-  conn.release();
-  console.error("✅ DB connected");
-} catch (err) {
-  console.error("❌ DB connection failed:", JSON.stringify({
-    message: err?.message,
-    code: err?.code,
-    errno: err?.errno,
-    sqlState: err?.sqlState,
-    sqlMessage: err?.sqlMessage,
-  }));
-}
-
+// Start server FIRST so Railway health check succeeds immediately
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 API available at /api`);
+
+  // Then build client in background (async)
+  setTimeout(async () => {
+    try {
+      console.log("🏗️ Building client...");
+      execSync("npx vite build", { cwd: path.join(process.cwd()), stdio: "inherit", timeout: 60000 });
+      console.log("✅ Client built");
+    } catch (e) {
+      console.error("❌ Client build failed:", e.message);
+    }
+  }, 100);
+
+  // And test DB in background
+  setTimeout(async () => {
+    try {
+      const conn = await pool.getConnection();
+      await conn.query("SELECT 1");
+      conn.release();
+      console.log("✅ DB connected");
+    } catch (err) {
+      console.error("❌ DB connection failed:", JSON.stringify({
+        message: err?.message, code: err?.code, errno: err?.errno,
+        sqlState: err?.sqlState, sqlMessage: err?.sqlMessage,
+      }));
+    }
+  }, 200);
 });
 
-// Keep process alive if server closes
 server.on("close", () => {
   console.error("⚠️ Server closed, but staying alive for debug");
 });
+
+// Log DB env vars
+const dbEnvVars = {};
+for (const [key, value] of Object.entries(process.env)) {
+  const k = key.toLowerCase();
+  if (k.includes("mysql") || k.includes("database") || k.includes("db_") || k.includes("datasource") || key === "DATABASE_URL") {
+    dbEnvVars[key] = key.toLowerCase().includes("pass") || key.toLowerCase().includes("password") ? "***" : value;
+  }
+}
+console.error("📋 DB env vars found:", JSON.stringify(dbEnvVars));
