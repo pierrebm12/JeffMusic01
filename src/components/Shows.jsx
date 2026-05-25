@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { ChevronLeft, ChevronRight, MapPin, Clock, CalendarDays, Mic, Music } from "lucide-react";
@@ -44,6 +44,7 @@ export function Shows({ apiShows = [], sections = {} }) {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [selectedShow, setSelectedShow] = useState(null);
   const [inquiryDate, setInquiryDate] = useState(null);
+  const [bgError, setBgError] = useState(false);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -55,7 +56,9 @@ export function Shows({ apiShows = [], sections = {} }) {
   const monthBgs = useMemo(() => parseMonthsJson(sections?.calendar?.data_json), [sections?.calendar?.data_json]);
   const monthBgUrl = monthBgs[month];
   const defaultBg = sections?.calendar?.media_url ? resolveMediaUrl(sections.calendar.media_url) : null;
-  const calendarBg = monthBgUrl ? resolveMediaUrl(monthBgUrl) : defaultBg;
+  const calendarBg = !bgError && (monthBgUrl ? resolveMediaUrl(monthBgUrl) : defaultBg);
+
+  useEffect(() => { setBgError(false); }, [monthBgUrl]);
   const monthNames = language === "en" ? MONTHS_EN : MONTHS_ES;
   const dayNames = language === "en" ? DAYS_EN : DAYS_ES;
 
@@ -126,6 +129,8 @@ export function Shows({ apiShows = [], sections = {} }) {
         {/* Calendar */}
         <div className={`relative border border-white/5 rounded-2xl overflow-hidden ${calendarBg ? "" : "bg-[#111]"}`}
           style={calendarBg ? { backgroundImage: `url(${calendarBg})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
+          {/* Hidden img to detect broken background */}
+          {calendarBg && <img src={calendarBg} alt="" className="hidden" onError={() => setBgError(true)} onLoad={() => setBgError(false)} />}
           {/* Dark overlay for readability */}
           {calendarBg && <div className="absolute inset-0 bg-black/60" />}
           {/* Month Navigator */}
